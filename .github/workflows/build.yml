@@ -14,12 +14,14 @@ permissions:
   contents: read
 
 env:
-  NIXPKGS_ALLOW_UNFREE: "1" # vault, packer
+  NIXPKGS_ALLOW_UNFREE: "1" # vault, packer, google-chrome
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    # Premier run à froid long (Chrome/Chromium, compilations Rust) ;
+    # les runs suivants restaurent le store depuis le cache GitHub.
+    timeout-minutes: 360
     steps:
       - uses: actions/checkout@v7
 
@@ -30,12 +32,18 @@ jobs:
           extra_nix_config: |
             accept-flake-config = true
 
+      - name: Restore and save Nix store
+        uses: nix-community/cache-nix-action@v7
+        with:
+          primary-key: nix-wsl-${{ runner.os }}-${{ hashFiles('flake.lock') }}
+          restore-prefixes-first-match: nix-wsl-${{ runner.os }}-
+          # purger le store de plus de 2 Go au-delà de 7 jours
+          gc-max-store-size-linux: 2G
+
       - name: Evaluate and check flake
         run: nix flake check --print-build-logs
 
-      - name: Build system toplevel
-        run: nix build .#nixosConfigurations.wsl.config.system.build.toplevel --print-build-logs
-
+      # La closure du tarballBuilder contient le toplevel : un seul build suffit.
       - name: Build WSL image
         run: |
           nix build .#nixosConfigurations.wsl.config.system.build.tarballBuilder --out-link result-tarball --print-build-logs
