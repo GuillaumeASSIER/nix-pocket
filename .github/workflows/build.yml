@@ -6,6 +6,10 @@ on:
   pull_request:
   workflow_dispatch:
 
+concurrency:
+  group: build-wsl-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -35,6 +39,7 @@ jobs:
       - name: Build WSL image
         run: |
           nix build .#nixosConfigurations.wsl.config.system.build.tarballBuilder --out-link result-tarball --print-build-logs
+          mkdir -p out
           sudo ./result-tarball/bin/nixos-wsl-tarball-builder out/nixos.wsl
 
       - name: Validate WSL image
