@@ -4,6 +4,7 @@
   imports = [
     ../../modules/devops.nix
     ../../modules/agents.nix
+    ../../modules/cache.nix
     ../../modules/lsp.nix
     ../../modules/home.nix
   ];

@@ -20,7 +20,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     # Premier run à froid long (Chrome/Chromium, compilations Rust) ;
-    # les runs suivants restaurent le store depuis le cache GitHub.
+    # les runs suivants restaurent le store depuis le cache GitHub
+    # et le cache binaire nix.guillaume.engineer.
     timeout-minutes: 360
     steps:
       - uses: actions/checkout@v7
@@ -28,9 +29,12 @@ jobs:
       - name: Install Nix
         uses: cachix/install-nix-action@v31
         with:
-          # Trust the flake's nixConfig if it adds one later
+          # extra-* : ajoutés sans remplacer cache.nixos.org
           extra_nix_config: |
             accept-flake-config = true
+            extra-substituters = https://nix.guillaume.engineer
+            extra-trusted-public-keys = nix.guillaume.engineer-1:Oc3grlRCR5P6WO58nYbLNRDkG29t8T5uBRrGL2ZMS2k=
+            connect-timeout = 5
 
       - name: Restore and save Nix store
         uses: nix-community/cache-nix-action@v7
@@ -53,6 +57,21 @@ jobs:
       - name: Validate WSL image
         run: |
           test -s out/nixos.wsl && gzip -t out/nixos.wsl
+
+      # Signe la closure construite et pousse vers nix.guillaume.engineer.
+      # N'échoue pas le build si le serveur est injoignable (DNS, panne).
+      - name: Push to nix.guillaume.engineer
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        continue-on-error: true
+        env:
+          CACHE_KEY: ${{ secrets.CACHE_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          echo "$CACHE_KEY" > /tmp/cache.key
+          chmod 600 /tmp/cache.key
+          nix path-info -r ./result-tarball \
+            | nix copy --to "https://nix.guillaume.engineer?secret-key=/tmp/cache.key" --stdin
+          rm -f /tmp/cache.key
 
       - name: Upload WSL image
         uses: actions/upload-artifact@v7
