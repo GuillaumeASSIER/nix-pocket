@@ -33,7 +33,7 @@ jobs:
           extra_nix_config: |
             accept-flake-config = true
             extra-substituters = https://nix.guillaume.engineer
-            extra-trusted-public-keys = nix.guillaume.engineer-1:Oc3grlRCR5P6WO58nYbLNRDkG29t8T5uBRrGL2ZMS2k=
+            extra-trusted-public-keys = nix.guillaume.engineer-1:KS4Ap78vxJkaD9FTZtjcKAzD6NHQOn28/IUId/5e3kA=
             connect-timeout = 5
 
       - name: Restore and save Nix store
