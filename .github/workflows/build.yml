@@ -1,0 +1,49 @@
+name: "Build WSL image"
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  NIXPKGS_ALLOW_UNFREE: "1" # vault, packer
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+        with:
+          # Trust the flake's nixConfig if it adds one later
+          extra_nix_config: |
+            accept-flake-config = true
+
+      - name: Evaluate and check flake
+        run: nix flake check --print-build-logs
+
+      - name: Build system toplevel
+        run: nix build .#nixosConfigurations.wsl.config.system.build.toplevel --print-build-logs
+
+      - name: Build WSL image
+        run: |
+          nix build .#nixosConfigurations.wsl.config.system.build.tarballBuilder --out-link result-tarball --print-build-logs
+          sudo ./result-tarball/bin/nixos-wsl-tarball-builder out/nixos.wsl
+
+      - name: Validate WSL image
+        run: |
+          test -s out/nixos.wsl && gzip -t out/nixos.wsl
+
+      - name: Upload WSL image
+        uses: actions/upload-artifact@v7
+        with:
+          name: nixos-wsl-${{ github.sha }}
+          path: out/nixos.wsl
+          if-no-files-found: error
