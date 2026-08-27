@@ -9,6 +9,7 @@ flake.nix              # inputs : nixpkgs (unstable), nixos-wsl, llm-agents
 hosts/wsl/default.nix  # hôte « wsl » : options WSL + tarball.configPath
 modules/devops.nix     # socle git/CLI, k8s, IaC, containers
 modules/agents.nix     # omp (oh-my-pi)
+modules/lsp.nix        # serveurs LSP complétant omp
 ```
 
 ## rebuild dans la VM
@@ -44,4 +45,5 @@ Import sous Windows : double-clic sur `nixos.wsl` (WSL >= 2.4.4), puis `wsl -d N
 | Kubernetes | kubectl, helm, k9s, kustomize, fluxcd, stern |
 | IaC / provisioning | opentofu (`tofu`), terragrunt, ansible, packer, vault |
 | Containers | docker-compose, dive, hadolint, trivy |
+| LSP (complète omp) | ruff, basedpyright, rust-analyzer, gopls, tsserver (`typescript`), biome, vscode-json-language-server, yaml-language-server, marksman |
 | Agents IA | omp 18.x (oh-my-pi), via llm-agents.nix |

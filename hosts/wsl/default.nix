@@ -2,6 +2,7 @@
   imports = [
     ../../modules/devops.nix
     ../../modules/agents.nix
+    ../../modules/lsp.nix
   ];
 
   wsl.enable = true;
