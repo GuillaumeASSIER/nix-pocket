@@ -64,7 +64,7 @@ jobs:
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         continue-on-error: true
         env:
-          CACHE_KEY: ${{ secrets.CACHE_PRIVATE_KEY }}
+          CACHE_KEY: ${{ secrets.CACHE_SIGNING_KEY }}
         run: |
           set -euo pipefail
           echo "$CACHE_KEY" > /tmp/cache.key
